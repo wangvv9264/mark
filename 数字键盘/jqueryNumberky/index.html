@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+	<title>vue组件--简单例子</title>
+	<link rel="stylesheet" href="css/mobileNumbk.css">
+	<script src="https://www.jq22.com/jquery/vue.min.js"></script>
+	<style>
+		*{
+			padding: 0;
+			margin: 0;
+		}
+		.footer-box{
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			display: flex;
+			width: 100%;
+			list-style: none;
+		}
+		.footer-box>li{
+			flex: 1;
+			background: #53a5f7;
+			color: #fff;
+			text-align: center;
+			line-height: 45px;
+		}
+
+		.numbk_layer{
+			display: block;
+		}
+		.numbk_actionsheet{
+			display: block;
+		}
+	</style>
+</head>
+<body>
+	<div id="app">
+		<input id="input1" type="text" v-on:focus="openNumberkb()" v-model="numberText">
+		<input id="input2" type="text" v-on:focus="openNumberkb2()" v-model="numberText2">
+		<numberbk-dom :option="numberkbOptions" :number-text.sync="numberText"></numberbk-dom>
+		<numberbk-dom :option="numberkbOptions2" :number-text.sync="numberText2"></numberbk-dom>
+		<footer-dom></footer-dom>
+	</div>
+	<template id="numberbk">
+		<div v-bind:id="defaultVal.numberId" class="numbk_layer" v-show="defaultVal.numberkbSwitch">
+			<div class="numbk_mask"></div>
+			<div class="numbk_actionsheet">
+				<ul class="numbk_items">
+					<li class="numbk_screen" contenteditable="true">{{numberText}}</li>
+					<li class="numbk_num" @click="insertNum(7)">7</li>
+					<li class="numbk_num" @click="insertNum(8)">8</li>
+					<li class="numbk_num" @click="insertNum(9)">9</li>
+					<li class="numbk_func numbk_exit" v-on:click="close()">{{defaultVal.textCancel}}</li>
+					<li class="numbk_num" @click="insertNum(4)">4</li>
+					<li class="numbk_num" @click="insertNum(5)">5</li>
+					<li class="numbk_num" @click="insertNum(6)">6</li>
+					<li class="numbk_func numbk_del" @click="delNum()">{{defaultVal.textDelete}}</li>
+					<li class="numbk_num" @click="insertNum(1)">1</li>
+					<li class="numbk_num" @click="insertNum(2)">2</li>
+					<li class="numbk_num" @click="insertNum(3)">3</li>
+					<li class="numbk_func numbk_clear" @click="clearNum()">{{defaultVal.textClear}}</li>
+					<li class="numbk_num" @click="insertNum(0)">0</li>
+					<li class="numbk_num" @click="insertNum('.')">.</li>
+					<li class="numbk_num" @click="insertNum(defaultVal.textSubtract)">{{defaultVal.textSubtract}}</li>
+					<li class="numbk_func numbk_sure" @click="close()">{{defaultVal.textDone}}</li>
+				</ul>
+			</div>
+		</div>
+	</template>
+	<template id="footer">
+		<ul class="footer-box">
+			<li>主页</li>
+			<li>消息</li>
+			<li>新闻</li>
+			<li>设置</li>
+		</ul>
+	</template>
+	<script>
+		var numberbk = {
+			data: function(){
+				return {
+					defaultVal:{
+						numberId:"numbk",//数值键盘dom唯一id
+						numberkbSwitch:false,//是否开启插件面板
+						textCancel:'取消',
+						textDelete:'删除',
+						textClear:'清除',
+						textSubtract:'+/-',
+						textDone:'确定',
+						style: 9,//系统颜色风格1/2/3
+						limitInt:12,//限制整数位
+						limitFloat:8,//限制小数位
+						limitLength:20,//限制总长度
+					},
+					lastEditRange:''
+				}
+			},
+			props:['option','numberText'],
+			template:'#numberbk',
+			mounted: function(){
+				for(var i in this.option){
+					if(this.option[i]!=""){
+						this.defaultVal[i] = this.option[i];
+					}
+				}
+			},
+			watch:{
+				option:{
+					deep:true,
+					handler: function(){
+						this.defaultVal.numberkbSwitch = this.option.numberkbSwitch;
+					}
+				},
+				defaultVal:{
+					deep:true,
+					handler: function(){
+						if(this.defaultVal.numberkbSwitch==true){
+							//显示数值框光标
+							/*this.$nextTick(() => {
+								var numDom = document.getElementById(this.defaultVal.numberId);
+						        var edit = numDom.querySelector('.numbk_screen');
+								edit.focus();//获取数值编辑器焦点
+								var selection = getSelection();// 获取选定对象
+								this.lastEditRange = selection.getRangeAt(0);//获取光标对象
+								// 获取光标对象的范围界定对象，一般就是textNode对象
+								var textNode = this.lastEditRange.startContainer;
+								// 光标移动新的位置
+								this.lastEditRange.setStart(textNode,this.numberText.length);
+								console.log(selection,this.lastEditRange);
+						    })*/
+						}
+					}
+				},
+				numberText(newVal,oldVal){
+					//修改父组件数据
+					this.$emit("update:numberText",newVal);
+				}
+			},
+			methods:{
+				insertNum: function(key){
+					var currentVal = this.numberText;
+					var currentValAbsLen = Math.abs(currentVal).toString().length;
+					var currentKey = key;
+					//判断是否有小数点，如果有，判断小数点后面有几位
+					var floatLength;
+					if(currentVal.indexOf(".")==-1){
+						floatLength = 0;
+					}else{
+						var point = currentVal.indexOf(".");//小数点位置
+						floatLength = currentVal.toString().length-1-point;
+					}
+					if(this.defaultVal.limitFloat==0&&currentKey=='.'){
+						currentKey = '';
+					}
+					if(currentVal.indexOf(".")==-1&&currentValAbsLen>=this.defaultVal.limitInt&&currentKey!=this.defaultVal.textSubtract&&currentKey!="."){
+						//判断整数位不能超过限定(currentVal没有小数，长度>=this.defaultVal.limitInt,currentKey不等于+-.)
+						return
+					}else if(floatLength>=this.defaultVal.limitFloat&&currentKey!=this.defaultVal.textSubtract&&this.defaultVal.limitFloat!=0){
+						//判断小数位不能超过限定
+						return
+					}else if(currentValAbsLen>=this.defaultVal.limitLength&&currentKey!=this.defaultVal.textSubtract){
+						//判断总位数不能超过限定
+						return
+					}else if(currentKey==this.defaultVal.textSubtract){//type subtract
+						currentVal = currentVal.indexOf('-')==-1 ? '-'+currentVal.toString() : currentVal.toString().split("-")[1];
+						// currentVal = currentVal*(-1);//最大为17位数相乘，有bug
+					}else if(currentKey=="."){//type .
+						currentVal==""?currentVal="0":currentVal;
+						currentVal = currentVal.toString().indexOf(".")==-1 ? currentVal.toString()+currentKey : currentVal;
+					}else if(currentKey=="0"&&(currentVal==""||currentVal=="0")){
+						currentVal = "0";
+					}else{
+						currentVal=="0"?currentVal="":currentVal;
+						currentVal = currentVal.toString() + currentKey;
+					}
+					this.numberText = currentVal;
+				},
+				close: function(){
+					this.option.numberkbSwitch = false;
+				},
+				delNum: function(){
+					this.numberText = this.numberText.substring(0,this.numberText.length-1);
+				},
+				clearNum: function(){
+					this.numberText = '';
+				}
+			}
+		}
+		var footer = {
+			template:'#footer'
+		}
+		new Vue({
+			el:'#app',
+			data:{
+				numberkbOptions:{
+					numberId:"numbk-1",
+					textCancel:'',
+					textDelete:'',
+					textClear:'清除',
+					textSubtract:'+/-',
+					textDone:'确定',
+					numberkbSwitch:false//默认数值键盘关闭
+				},
+				numberText:'100.01',//数值输入框初始值
+				numberkbOptions2:{
+					numberId:"numbk-2",
+					textCancel:'',
+					textDelete:'',
+					textClear:'清除',
+					textSubtract:'+/-',
+					textDone:'确定',
+					numberkbSwitch:false,
+				},
+				numberText2:'99'
+			},
+			components:{
+				'numberbk-dom':numberbk,
+				'footer-dom':footer
+			},
+			methods:{
+				openNumberkb: function(){
+					//打开键盘面板
+					this.numberkbOptions.numberkbSwitch = true;
+				},
+				openNumberkb2: function(){
+					//打开键盘面板
+					this.numberkbOptions2.numberkbSwitch = true;
+				},
+			}
+		})
+	</script>
+</body>
+</html>
+

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>js艺术二维码生成插件</title>
+	<link rel="stylesheet" type="text/css" href="css/normalize.css" /><!--CSS RESET-->
+	<style>
+		body{background-color: #2A2A2A}
+	</style>
+</head>
+<body>
+	<div class="htmleaf-container">
+		<header class="htmleaf-header">
+			<h1 style="text-align: center;color: aliceblue">js艺术二维码生成插件</h1>	
+		</header>
+		<div class="htmleaf-content" style="width: 500px; height: 500px; margin: 20px auto;">
+			<div id="qrcode"></div>
+		</div>
+
+	</div>
+	
+	<script src="js/artqrcode.js"></script>
+	<script>
+    var qrcode = new QRCode(document.getElementById("qrcode"), {
+        text: "http://www.jq22.com",
+        /**
+         * width,height 是输出图的宽高
+         * codeWidth,codeHeight 是二维码的宽高
+         * top,left 是二维码区域的定位
+         */
+        width: 500,
+        height: 500,
+        codeWidth: 320,
+        codeHeight: 320,
+        top: 85,
+        left: 80,
+        /**
+         * 素材配置
+         */
+        materials: {
+            border: "./materials/electron/border.png",
+            eye: "./materials/electron/eye.png",
+            row4: "./materials/electron/row4.png",
+            col4: "./materials/electron/col3.png",
+            row2col3: "./materials/electron/row2col3.png",
+            row3col2: "./materials/electron/row3col2.png",
+            col3: ["./materials/electron/col3.png", "./materials/electron/col3_2.png"],
+            row2col2: "./materials/electron/row2col2.png",
+            corner: "./materials/electron/corner.png",
+            row2: ["./materials/electron/row2.png", "./materials/electron/row2_2.png"],
+            col2: "./materials/electron/col2.png",
+            single: ["./materials/electron/single.png", "./materials/electron/single_2.png"],
+        }
+    });
+</script>
+</body>
+</html>
